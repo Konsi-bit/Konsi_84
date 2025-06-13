@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euro Clicker | by Konstantin Fuchs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+/* Allgemeine Stile */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f1f1f1;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Verhindert horizontales Scrollen bei geöffnetem Menü */
+    transition: background-color 0.5s ease; /* Sanfte Hintergrundübergänge */
+    color: #333; /* Standardtextfarbe */
+}
+#gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* Mindesthöhe des Containers für vertikale Zentrierung */
+    transition: margin-left 0.3s;
+    position: relative; /* Für Notifications und Geld-Animation */
+}
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s, color 0.3s; /* Sanfte Button-Übergänge */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2); /* Button Schatten */
+}
+button:hover:not(:disabled) {
+    opacity: 0.9;
+}
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+.shopBtn, .skillBtn, .designOptionBtn {
+    width: 250px;
+    white-space: pre-wrap;
+    display: inline-block;
+    vertical-align: top;
+    height: auto;
+    min-height: 100px;
+    margin: 10px;
+    box-sizing: border-box;
+}
+.panel {
+    display: none;
+    margin-top: 20px;
+    padding: 20px;
+    border-top: 1px solid #eee;
+    width: 90%;
+    max-width: 1000px;
+    background-color: rgba(255,255,255,0.9); /* Leichter Hintergrund für Panels */
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+.active {
+    display: block;
+}
+input[type="text"] {
+    padding: 8px;
+    width: 250px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+h1, h2, h3, h4 {
+    color: #333;
+}
+
+/* Start Screen */
+#startScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #222;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+    font-size: 2em;
+}
+#startScreen button {
+    font-size: 1.5em;
+    padding: 15px 30px;
+    margin-top: 30px;
+    background-color: #28a745;
+    color: white;
+}
+#startScreen .logo {
+    font-size: 4em;
+    margin-bottom: 20px;
+    color: #ffd700;
+}
+
+/* Leaderboard & Login placeholders */
+.placeholder-section {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+}
+.placeholder-section h3 {
+    color: #eee;
+}
+.placeholder-section p {
+    font-size: 0.9em;
+    color: #ccc;
+}
+.placeholder-section button {
+    background-color: #17a2b8;
+}
+
+/* Menü-spezifische Stile */
+#menuIcon {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 1000;
+    color: #333;
+    background: rgba(255,255,255,0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+#sideMenu {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    background-color: #333;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    text-align: left;
+    color: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+}
+#sideMenu a {
+    padding: 15px 8px 15px 32px;
+    text-decoration: none;
+    font-size: 22px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+#sideMenu a:hover {
+    color: #f1f1f1;
+    background-color: #555;
+}
+#sideMenu .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+    color: white;
+}
+
+/* Design Shop spezifische Stile */
+.designOption {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    display: inline-block;
+    width: 150px;
+    height: 100px;
+    vertical-align: top;
+    text-align: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+    font-size: 14px;
+    border-radius: 8px;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+.designOption.selected {
+    border: 3px solid #007bff;
+    box-shadow: 0 0 10px rgba(0,123,255,0.7);
+}
+
+/* Spezial-Design Stile */
+.designOption.glitch-effect, body.glitch-effect {
+    animation: glitch-color 1s infinite alternate;
+}
+@keyframes glitch-color {
+    0% { background-color: #f1f1f1; }
+    33% { background-color: #f0f; }
+    66% { background-color: #0ff; }
+    100% { background-color: #f1f1f1; }
+}
+
+.designOption.hacker-effect, body.hacker-effect {
+    background-color: #0a0a0a;
+    color: #0f0;
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+    position: relative;
+    animation: hacker-flicker 0.1s infinite;
+}
+@keyframes hacker-flicker {
+    0% { opacity: 1; }
+    50% { opacity: 0.9; }
+    100% { opacity: 1; }
+}
+
+.designOption.universe-effect, body.universe-effect {
+    background-color: #000;
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+.designOption.universe-effect::before, body.universe-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(white 1px, transparent 1px),
+                      radial-gradient(white 1px, transparent 1px);
+    background-size: 5px 5px;
+    background-position: 0 0, 5px 5px;
+    animation: star-move 60s linear infinite;
+    z-index: -1; /* Ensure stars are behind content */
+}
+@keyframes star-move {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 500px 500px;
+    }
+}
+
+
+/* Skill Tree spezifische Stile */
+.skillTreeGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
+.skillTreeNode {
+    border: 2px solid #555;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    text-align: center;
+    position: relative;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+.skillTreeNode.unlocked {
+    border-color: #28a745;
+    background-color: #d4edda;
+}
+.skillTreeNode.locked {
+    opacity: 0.7;
+    background-color: #f2f2f2;
+}
+.skillTreeNode.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.skillTreeNode button {
+    margin-top: 10px;
+    display: block;
+    width: 100%;
+}
+.skillNodeRequirement {
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+/* Achievements */
+#achievementsPanel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    padding: 20px;
+    text-align: left;
+}
+.achievement {
+    border: 1px solid #ccc;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    display: flex;
+    align-items: center;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.achievement.unlocked {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+.achievement-icon {
+    font-size: 36px;
+    margin-right: 15px;
+    color: #aaa;
+    min-width: 40px; /* Ensure icon doesn't shrink */
+    text-align: center;
+}
+.achievement.unlocked .achievement-icon {
+    color: #28a745;
+}
+.achievement-content h4 {
+    margin: 0;
+    font-size: 1.15em;
+    color: #333;
+}
+.achievement-content p {
+    margin: 2px 0 0 0;
+    font-size: 0.95em;
+    color: #666;
+}
+
+/* Notifications */
+#notificationContainer {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1002;
+    pointer-events: none; /* Allows clicks through the container */
+}
+.notification {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateX(-100%);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    pointer-events: all; /* Allows clicks on individual notifications */
+    display: flex;
+    align-items: center;
+    min-width: 250px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
+}
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+.notification-icon {
+    margin-right: 10px;
+    font-size: 20px;
+    color: #ffd700; /* Gold for notifications */
+}
+.notification-content {
+    flex-grow: 1;
+}
+.notification-content h5 {
+    margin: 0;
+    font-size: 1em;
+    font-weight: bold;
+}
+.notification-content p {
+    margin: 2px 0 0 0;
+    font-size: 0.85em;
+    color: #eee;
+}
+
+/* Money Particle Animation */
+.money-particle {
+    position: absolute;
+    font-size: 20px; /* Größe der Geldscheine */
+    opacity: 0;
+    pointer-events: none;
+    animation: moneyFly 1.5s ease-out forwards;
+    z-index: 999;
+}
+
+@keyframes moneyFly {
+    0% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--x), var(--y)) scale(0.5) rotate(var(--rot));
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #sideMenu {
+        padding-top: 15px;
+    }
+    #sideMenu a {
+        font-size: 18px;
+        padding: 10px 8px 10px 20px;
+    }
+    #menuIcon {
+        font-size: 24px;
+        top: 10px;
+        right: 10px;
+    }
+    #container {
+        margin-left: 0 !important; /* Override inline style from JS */
+    }
+    .panel {
+        width: 95%;
+        padding: 10px;
+    }
+    .shopBtn, .skillBtn, .designOptionBtn {
+        width: 180px;
+        min-height: 80px;
+        font-size: 14px;
+    }
+    .skillTreeGrid, #achievementsPanel {
+        grid-template-columns: 1fr;
+    }
+    .designOption {
+        width: 120px;
+        height: 80px;
+        font-size: 12px;
+    }
+    input[type="text"] {
+        width: 180px;
+        font-size: 14px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+    <div class="logo">€</div>
+    <h1>Euro Clicker</h1>
+    <p>Made by Konstantin Fuchs</p>
+    <button id="startGameBtn">Spiel Starten</button>
+    <div class="placeholder-section">
+        <h3>Leaderboard (Demnächst!)</h3>
+        <p>Erklimme die Spitze und werde der reichste Klicker!</p>
+    </div>
+    <div class="placeholder-section">
+        <h3>Konto verknüpfen (Demnächst!)</h3>
+        <p>Verknüpfe dein Google-Konto, um deinen Fortschritt zu speichern und auf jedem Gerät zu spielen.</p>
+        <button id="linkAccountBtn"><i class="fab fa-google"></i> Google-Konto verknüpfen</button>
+    </div>
+</div>
+
+<div id="notificationContainer"></div>
+
+<div id="menuIcon" onclick="openNav()" style="display:none;">&#9776;</div>
+
+<div id="sideMenu" class="sideMenu">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <a href="#" onclick="openPanel('shopPanel'); closeNav();">🛒 Shop</a>
+    <a href="#" onclick="openPanel('skillPanel'); closeNav();">🧠 Skills</a>
+    <a href="#" onclick="openPanel('designPanel'); closeNav();">🎨 Design</a>
+    <a href="#" onclick="openPanel('achievementsPanel'); closeNav();">🏆 Achievements</a>
+    <a href="#" onclick="openPanel('settingsPanel'); closeNav();">⚙️ Einstellungen</a>
+    <a href="#" onclick="prestige(); closeNav();">🏅 Prestige</a>
+</div>
+
+<div id="gameContainer">
+    <h1 id="gameTitle" style="display:none;">Euro Clicker</h1>
+    <h2 id="euroDisplay" style="display:none;">0 €</h2>
+    <button id="clickBtn" style="display:none;">💶 Klicken</button>
+
+    <div id="shopPanel" class="panel">
+        <h3>Shop</h3>
+        <div id="shopItems"></div>
+    </div>
+
+    <div id="skillPanel" class="panel">
+        <h3>Skills (Skillpunkte: <span id="skillPointsDisplay">0</span>)</h3>
+        <div id="skillTreeContainer" class="skillTreeGrid"></div>
+    </div>
+
+    <div id="designPanel" class="panel">
+        <h3>Designs</h3>
+        <h4>Hintergrund-Designs</h4>
+        <div id="backgroundDesignItems"></div>
+        <h4>Button-Designs</h4>
+        <div id="buttonDesignItems"></div>
+    </div>
+
+    <div id="achievementsPanel" class="panel">
+        <h3>Achievements</h3>
+        <div id="achievementList"></div>
+    </div>
+
+    <div id="settingsPanel" class="panel">
+        <h3>Einstellungen</h3>
+        <button onclick="switchLanguage()">🌐 Sprache wechseln</button>
+        <button onclick="resetGame()">♻️ Spiel zurücksetzen</button>
+        <input id="commandInput" placeholder="Admin-Befehl eingeben">
+        <button onclick="runCommand()">▶️</button>
+    </div>
+</div>
+
+<script>
+    // Hauptdatenobjekt des Spiels
+    let data = {
+        euro: 0,
+        perClick: 1,
+        autoIncome: 0,
+        prestigeLevel: 0,
+        prestigeBonus: 1, // 1 + prestigeLevel * 0.1
+        skillPoints: 0,
+        shopDiscount: 1, // Startet ohne Rabatt
+        upgrades: {}, // Speichert das Level jedes Shop-Upgrades
+        learnedSkills: [], // Speichert die IDs der gelernten Skills
+        backgroundDesign: 0, // Aktuelles Hintergrund-Design ID
+        buttonDesign: 0, // Aktuelles Button-Design ID
+        language: 'de',
+        achievements: {}, // Speichert den Freischaltstatus von Achievements (boolean)
+        totalClicks: 0, // Gesamtanzahl der Klicks
+        totalEuroEarned: 0, // Insgesamt verdiente Euros (kumulativ)
+        totalEuroSpent: 0, // Insgesamt ausgegebene Euros
+        prestigeCount: 0, // Anzahl der durchgeführten Prestiges
+        timePlayed: 0, // Spielzeit in Sekunden
+        unlockedBackgroundDesigns: [0], // Liste der freigeschalteten Hintergrund-Design-IDs
+        unlockedButtonDesigns: [0], // Liste der freigeschalteten Button-Design-IDs
+        skillPointBoost: 0, // Zusätzlicher Boost für Skillpunkte vom Prestige
+        gameStarted: false // Um den Startbildschirm zu kontrollieren
+    };
+
+    // --- Shop-Daten ---
+    // Generiert 30 Shop-Upgrades
+    const shopData = [];
+    for (let i = 1; i <= 30; i++) {
+        let baseCost = Math.floor(10 * Math.pow(1.8, i - 1));
+        let effect = i * 0.5;
+        let type = i % 2 === 0 ? 'auto' : 'click'; // Wechselt zwischen Auto- und Klick-Upgrades
+        let descDE = type === 'click' ? `+${effect}€ pro Klick` : `+${effect}€/s automatisch`;
+        let descEN = type === 'click' ? `+${effect}€ per click` : `+${effect}€/s auto`;
+        shopData.push({
+            id: `upgrade${i}`,
+            de: `Upgrade ${i} (${type === 'click' ? 'Klick' : 'Auto'})`,
+            en: `Upgrade ${i} (${type === 'click' ? 'Click' : 'Auto'})`,
+            base: baseCost,
+            effect: effect,
+            descDE: descDE,
+            descEN: descEN,
+            type: type
+        });
+    }
+
+    // Initialisiert Upgrade-Level, wenn sie nicht aus Speicherdaten vorhanden sind
+    shopData.forEach(item => {
+        if (data.upgrades[item.id] === undefined) {
+             data.upgrades[item.id] = 0;
+        }
+    });
+
+    // --- Skill-Daten ---
+    const skills = [
+        // Level 1 Skills
+        { id: 's1-1', de: 'Schneller Klick', en: 'Faster Click', cost: 1, descDE: '+5€ Klick', descEN: '+5€ Click', apply: () => data.perClick += 5, requires: [] },
+        { id: 's1-2', de: 'Grundlagen des Geldes', en: 'Money Basics', cost: 1, descDE: '+5€/s', en: '+5€/s', apply: () => data.autoIncome += 5, requires: [] },
+        { id: 's1-3', de: 'Grundlagen der Effizienz', en: 'Efficiency Basics', cost: 1, descDE: 'Shop -5% Rabatt', en: 'Shop -5% Discount', apply: () => data.shopDiscount *= 0.95, requires: [] },
+        { id: 's1-4', de: 'Anfänger-Glück', en: 'Beginner\'s Luck', cost: 1, descDE: '+0.01 Prestige-Bonus', en: '+0.01 Prestige Bonus', apply: () => data.prestigeBonus += 0.01, requires: [] },
+        { id: 's1-5', de: 'Wachstumsideen', en: 'Growth Ideas', cost: 1, descDE: '+0.01 Skillpunkte Boost', en: '+0.01 Skill Points Boost', apply: () => data.skillPointBoost += 0.01, requires: [] },
+
+
+        // Level 2 Skills
+        { id: 's2-1', de: 'Klick-Meister', en: 'Click Master', cost: 5, descDE: '+20€ Klick', descEN: '+20€ Click', apply: () => data.perClick += 20, requires: ['s1-1'] },
+        { id: 's2-2', de: 'Automatik-Experte', en: 'Auto Expert', cost: 5, descDE: '+20€/s', descEN: '+20€/s', apply: () => data.autoIncome += 20, requires: ['s1-2'] },
+        { id: 's2-3', de: 'Prestige-Bonus II', en: 'Prestige Bonus II', cost: 8, descDE: '+0.05 Prestige Bonus', descEN: '+0.05 Prestige Bonus', apply: () => data.prestigeBonus += 0.05, requires: ['s1-4'] },
+        { id: 's2-4', de: 'Preisverhandler', en: 'Price Negotiator', cost: 7, descDE: 'Shop -10% Rabatt', en: 'Shop -10% Discount', apply: () => data.shopDiscount *= 0.90, requires: ['s1-3'] },
+        { id: 's2-5', de: 'Effizientes Lernen', en: 'Efficient Learning', cost: 10, descDE: '+0.05 Skillpunkte Boost', en: '+0.05 Skill Points Boost', apply: () => data.skillPointBoost += 0.05, requires: ['s1-5'] },
+        { id: 's2-6', de: 'Schneller Fortschritt', en: 'Fast Progress', cost: 6, descDE: '+10% Klick und Auto', en: '+10% Click and Auto', apply: () => { data.perClick *= 1.1; data.autoIncome *= 1.1; }, requires: ['s1-1', 's1-2'] },
+
+        // Level 3 Skills
+        { id: 's3-1', de: 'Klick-Legende', en: 'Click Legend', cost: 25, descDE: '+100€ Klick', descEN: '+100€ Click', apply: () => data.perClick += 100, requires: ['s2-1'] },
+        { id: 's3-2', de: 'Automatisierungsgott', en: 'Automation God', cost: 25, descDE: '+100€/s', descEN: '+100€/s', apply: () => data.autoIncome += 100, requires: ['s2-2'] },
+        { id: 's3-3', de: 'Super Prestige', en: 'Super Prestige', cost: 40, descDE: '+0.1 Prestige Bonus', en: '+0.1 Prestige Bonus', apply: () => data.prestigeBonus += 0.1, requires: ['s2-3'] },
+        { id: 's3-4', de: 'Meisterhändler', en: 'Master Dealer', cost: 35, descDE: 'Shop -15% Rabatt', en: 'Shop -15% Discount', apply: () => data.shopDiscount *= 0.85, requires: ['s2-4'] },
+        { id: 's3-5', de: 'Skillpunkt-Booster', en: 'Skill Point Booster', cost: 30, descDE: '+0.1 Skillpunkte Boost', en: '+0.1 Skill Points Boost', apply: () => data.skillPointBoost += 0.1, requires: ['s2-5'] },
+        { id: 's3-6', de: 'Wunder des Wachstums', en: 'Growth Miracle', cost: 20, descDE: '+20% Klick und Auto', en: '+20% Click and Auto', apply: () => { data.perClick *= 1.2; data.autoIncome *= 1.2; }, requires: ['s2-6'] },
+        { id: 's3-7', de: 'Synergie-Klick', en: 'Synergy Click', cost: 15, descDE: '+50% Klick-Bonus von Auto-Einkommen', en: '+50% Click Bonus from Auto Income', apply: () => data.perClick += data.autoIncome * 0.5, requires: ['s2-1', 's2-2'] },
+        { id: 's3-8', de: 'Synergie-Auto', en: 'Synergy Auto', cost: 15, descDE: '+50% Auto-Einkommen von Klick-Bonus', en: '+50% Auto Income from Click Bonus', apply: () => data.autoIncome += data.perClick * 0.5, requires: ['s2-1', 's2-2'] }
+    ];
+
+    // --- Hintergrund-Designs ---
+    const backgroundDesigns = [
+        { id: 0, de: 'Standard', en: 'Standard', color: '#f1f1f1', cost: 0, className: '' },
+        { id: 1, de: 'Dunkel', en: 'Dark Mode', color: '#333333', cost: 1000, className: '' },
+        { id: 2, de: 'Blau', en: 'Blue', color: '#88c', cost: 1000, className: '' },
+        { id: 3, de: 'Grün', en: 'Green', color: '#8c8', cost: 1000, className: '' },
+        { id: 4, de: 'Lila', en: 'Purple', color: '#c8c', cost: 1000, className: '' },
+        { id: 5, de: 'Rot', en: 'Red', color: '#c88', cost: 1000, className: '' },
+        { id: 6, de: 'Gold', en: 'Gold', color: '#ffd700', cost: 1000, className: '' },
+        { id: 7, de: 'Silber', en: 'Silver', color: '#c0c0c0', cost: 1000, className: '' },
+        { id: 8, de: 'Wald', en: 'Forest', color: '#228B22', cost: 1000, className: '' },
+        { id: 9, de: 'Himmel', en: 'Sky', color: '#87CEEB', cost: 1000, className: '' },
+        { id: 10, de: 'Glitch', en: 'Glitch', color: '#f1f1f1', cost: 10000, className: 'glitch-effect' }, // Spezial-Hintergrund
+        { id: 11, de: 'Hacker', en: 'Hacker', color: '#0a0a0a', cost: 20000, className: 'hacker-effect' }, // Spezial-Hintergrund
+        { id: 12, de: 'Universum', en: 'Universe', color: '#000', cost: 50000, className: 'universe-effect' } // Spezial-Hintergrund
+    ];
+
+    // --- Button-Designs ---
+    const buttonDesigns = [
+        { id: 0, de: 'Standard', en: 'Standard', bgColor: '#007bff', textColor: 'white', cost: 0 },
+        { id: 1, de: 'Rot', en: 'Red', bgColor: '#dc3545', textColor: 'white', cost: 1000 },
+        { id: 2, de: 'Grün', en: 'Green', bgColor: '#28a745', textColor: 'white', cost: 1000 },
+        { id: 3, de: 'Orange', en: 'Orange', bgColor: '#fd7e14', textColor: 'white', cost: 1000 },
+        { id: 4, de: 'Aqua', en: 'Aqua', bgColor: '#17a2b8', textColor: 'white', cost: 1000 },
+        { id: 5, de: 'Schwarz', en: 'Black', bgColor: '#343a40', textColor: 'white', cost: 1000 },
+        { id: 6, de: 'Lila', en: 'Purple', bgColor: '#6f42c1', textColor: 'white', cost: 1000 },
+        { id: 7, de: 'Gelb', en: 'Yellow', bgColor: '#ffc107', textColor: 'black', cost: 1000 },
+        { id: 8, de: 'Pink', en: 'Pink', bgColor: '#e83e8c', textColor: 'white', cost: 1000 },
+        { id: 9, de: 'Braun', en: 'Brown', bgColor: '#a52a2a', textColor: 'white', cost: 1000 }
+    ];
+
+    // --- Achievement-Daten ---
+    const achievements = [
+        // Euro Achievements
+        { id: 'euro1', de: 'Erster Euro', en: 'First Euro', descDE: 'Verdiene 1 Euro.', descEN: 'Earn 1 Euro.', check: () => data.euro >= 1, icon: 'fas fa-euro-sign' },
+        { id: 'euro100', de: 'Hundert Euro', en: 'Hundred Euros', descDE: 'Verdiene 100 Euro.', descEN: 'Earn 100 Euros.', check: () => data.euro >= 100, icon: 'fas fa-money-bill-wave' },
+        { id: 'euro1k', de: 'Tausend Euro', en: 'Thousand Euros', descDE: 'Verdiene 1.000 Euro.', descEN: 'Earn 1,000 Euros.', check: () => data.euro >= 1000, icon: 'fas fa-hand-holding-usd' },
+        { id: 'euro10k', de: 'Zehntausend Euro', en: 'Ten Thousand Euros', descDE: 'Verdiene 10.000 Euro.', descEN: 'Earn 10,000 Euros.', check: () => data.euro >= 10000, icon: 'fas fa-coins' },
+        { id: 'euro100k', de: 'Hunderttausend Euro', en: 'Hundred Thousand Euros', descDE: 'Verdiene 100.000 Euro.', descEN: 'Earn 100,000 Euros.', check: () => data.euro >= 100000, icon: 'fas fa-wallet' },
+        { id: 'euro1m', de: 'Millionär', en: 'Millionaire', descDE: 'Verdiene 1.000.000 Euro.', descEN: 'Earn 1,000,000 Euros.', check: () => data.euro >= 1000000, icon: 'fas fa-gem' },
+        { id: 'euro10m', de: 'Multimillionär', en: 'Multi-Millionaire', descDE: 'Verdiene 10.000.000 Euro.', descEN: 'Earn 10,000,000 Euros.', check: () => data.euro >= 10000000, icon: 'fas fa-crown' },
+        { id: 'euro100m', de: 'Finanztycoon', en: 'Financial Tycoon', descDE: 'Verdiene 100.000.000 Euro.', descEN: 'Earn 100,000,000 Euros.', check: () => data.euro >= 100000000, icon: 'fas fa-building' },
+        { id: 'euro1b', de: 'Milliardär', en: 'Billionaire', descDE: 'Verdiene 1.000.000.000 Euro.', descEN: 'Earn 1,000,000,000 Euros.', check: () => data.euro >= 1000000000, icon: 'fas fa-landmark' },
+
+        // Click Achievements
+        { id: 'click10', de: 'Zehn Klicks', en: 'Ten Clicks', descDE: 'Klicke 10 Mal.', descEN: 'Click 10 times.', check: () => data.totalClicks >= 10, icon: 'fas fa-hand-pointer' },
+        { id: 'click100', de: 'Hundert Klicks', en: 'Hundred Clicks', descDE: 'Klicke 100 Mal.', descEN: 'Click 100 times.', check: () => data.totalClicks >= 100, icon: 'fas fa-fingerprint' },
+        { id: 'click1k', de: 'Tausend Klicks', en: 'Thousand Clicks', descDE: 'Klicke 1.000 Mal.', descEN: 'Click 1,000 times.', icon: 'fas fa-mouse-pointer', check: () => data.totalClicks >= 1000 },
+        { id: 'click10k', de: 'Zehntausend Klicks', en: 'Ten Thousand Clicks', descDE: 'Klicke 10.000 Mal.', descEN: 'Click 10,000 times.', icon: 'fas fa-keyboard', check: () => data.totalClicks >= 10000 },
+        { id: 'click100k', de: 'Hunderttausend Klicks', en: 'Hundred Thousand Clicks', descDE: 'Klicke 100.000 Mal.', descEN: 'Click 100,000 times.', icon: 'fas fa-globe', check: () => data.totalClicks >= 100000 },
+        { id: 'click1m', de: 'Eine Million Klicks', en: 'One Million Klicks', descDE: 'Klicke 1.000.000 Mal.', descEN: 'Click 1,000,000 times.', icon: 'fas fa-mouse', check: () => data.totalClicks >= 1000000 },
+
+        // Prestige Achievements
+        { id: 'prestige1', de: 'Erster Prestige', en: 'First Prestige', descDE: 'Führe Prestige einmal aus.', descEN: 'Perform Prestige once.', check: () => data.prestigeCount >= 1, icon: 'fas fa-trophy' },
+        { id: 'prestige5', de: 'Fünf Prestige', en: 'Five Prestiges', descDE: 'Führe 5 Mal Prestige aus.', descEN: 'Perform Prestige 5 times.', check: () => data.prestigeCount >= 5, icon: 'fas fa-award' },
+        { id: 'prestige10', de: 'Zehn Prestige', en: 'Ten Prestiges', descDE: 'Führe 10 Mal Prestige aus.', descEN: 'Perform Prestige 10 times.', check: () => data.prestigeCount >= 10, icon: 'fas fa-medal' },
+        { id: 'prestige25', de: 'Prestige-Meister', en: 'Prestige Master', descDE: 'Führe 25 Mal Prestige aus.', descEN: 'Perform Prestige 25 times.', check: () => data.prestigeCount >= 25, icon: 'fas fa-fist-raised' },
+        { id: 'prestige50', de: 'Prestige-Gott', en: 'Prestige God', descDE: 'Führe 50 Mal Prestige aus.', descEN: 'Perform Prestige 50 times.', check: () => data.prestigeCount >= 50, icon: 'fas fa-gavel' },
+
+        // Skill Point Achievements
+        { id: 'sp10', de: '10 Skillpunkte', en: '10 Skill Points', descDE: 'Sammle insgesamt 10 Skillpunkte.', descEN: 'Collect 10 total Skill Points.', check: () => data.skillPoints >= 10 || skills.filter(s => data.learnedSkills.includes(s.id)).reduce((acc, s) => acc + s.cost, 0) >= 10, icon: 'fas fa-brain' },
+        { id: 'sp50', de: '50 Skillpunkte', en: '50 Skill Points', descDE: 'Sammle insgesamt 50 Skillpunkte.', descEN: 'Collect 50 total Skill Points.', check: () => data.skillPoints >= 50 || skills.filter(s => data.learnedSkills.includes(s.id)).reduce((acc, s) => acc + s.cost, 0) >= 50, icon: 'fas fa-lightbulb' },
+        { id: 'sp100', de: '100 Skillpunkte', en: '100 Skill Points', descDE: 'Sammle insgesamt 100 Skillpunkte.', descEN: 'Collect 100 total Skill Points.', check: () => data.skillPoints >= 100 || skills.filter(s => data.learnedSkills.includes(s.id)).reduce((acc, s) => acc + s.cost, 0) >= 100, icon: 'fas fa-seedling' },
+        { id: 'sp250', de: '250 Skillpunkte', en: '250 Skill Points', descDE: 'Sammle insgesamt 250 Skillpunkte.', descEN: 'Collect 250 total Skill Points.', check: () => data.skillPoints >= 250 || skills.filter(s => data.learnedSkills.includes(s.id)).reduce((acc, s) => acc + s.cost, 0) >= 250, icon: 'fas fa-atom' },
+
+        // Income Rate Achievements
+        { id: 'auto100', de: 'Auto-Einkommen 100', en: 'Auto Income 100', descDE: 'Erreiche 100€/s Auto-Einkommen.', descEN: 'Reach 100€/s Auto Income.', check: () => data.autoIncome >= 100, icon: 'fas fa-robot' },
+        { id: 'auto500', de: 'Auto-Einkommen 500', en: 'Auto Income 500', descDE: 'Erreiche 500€/s Auto-Einkommen.', descEN: 'Reach 500€/s Auto Income.', check: () => data.autoIncome >= 500, icon: 'fas fa-cogs' },
+        { id: 'auto1k', de: 'Auto-Einkommen 1.000', en: 'Auto Income 1,000', descDE: 'Erreiche 1.000€/s Auto-Einkommen.', descEN: 'Reach 1,000€/s Auto Income.', check: () => data.autoIncome >= 1000, icon: 'fas fa-piggy-bank' },
+        { id: 'auto5k', de: 'Megalopolis', en: 'Megalopolis', descDE: 'Erreiche 5.000€/s Auto-Einkommen.', descEN: 'Reach 5,000€/s Auto Income.', check: () => data.autoIncome >= 5000, icon: 'fas fa-city' },
+        { id: 'auto10k', de: 'Imperium', en: 'Empire', descDE: 'Erreiche 10.000€/s Auto-Einkommen.', descEN: 'Reach 10,000€/s Auto Income.', check: () => data.autoIncome >= 10000, icon: 'fas fa-industry' },
+        { id: 'perClick50', de: 'Klickbonus 50', en: 'Click Bonus 50', descDE: 'Erreiche +50€ pro Klick.', descEN: 'Reach +50€ per click.', check: () => data.perClick >= 50, icon: 'fas fa-hand-holding-usd' },
+        { id: 'perClick200', de: 'Klickbonus 200', en: 'Click Bonus 200', descDE: 'Erreiche +200€ pro Klick.', descEN: 'Reach +200€ per click.', check: () => data.perClick >= 200, icon: 'fas fa-dollar-sign' },
+        { id: 'perClick1k', de: 'Finanzgott', en: 'Financial God', descDE: 'Erreiche 1.000€ pro Klick.', descEN: 'Reach 1,000€ per click.', check: () => data.perClick >= 1000, icon: 'fas fa-wallet' },
+        { id: 'perClick5k', de: 'Hyper-Klicker', en: 'Hyper Clicker', descDE: 'Erreiche 5.000€ pro Klick.', descEN: 'Reach 5,000€ per click.', check: () => data.perClick >= 5000, icon: 'fas fa-bolt' },
+        { id: 'perClick10k', de: 'Klick-Titan', en: 'Click Titan', descDE: 'Erreiche 10.000€ pro Klick.', descEN: 'Reach 10,000€ per click.', check: () => data.perClick >= 10000, icon: 'fas fa-hammer' },
+
+        // Shop Achievements
+        { id: 'shop5', de: '5 Shop-Upgrades', en: '5 Shop Upgrades', descDE: 'Kaufe insgesamt 5 Shop-Upgrades.', descEN: 'Buy 5 total Shop Upgrades.', check: () => Object.values(data.upgrades).reduce((a, b) => a + b, 0) >= 5, icon: 'fas fa-shopping-cart' },
+        { id: 'shop20', de: '20 Shop-Upgrades', en: '20 Shop Upgrades', descDE: 'Kaufe insgesamt 20 Shop-Upgrades.', descEN: 'Buy 20 total Shop Upgrades.', check: () => Object.values(data.upgrades).reduce((a, b) => a + b, 0) >= 20, icon: 'fas fa-store' },
+        { id: 'shop50', de: '50 Shop-Upgrades', en: '50 Shop Upgrades', descDE: 'Kaufe insgesamt 50 Shop-Upgrades.', descEN: 'Buy 50 total Shop Upgrades.', check: () => Object.values(data.upgrades).reduce((a, b) => a + b, 0) >= 50, icon: 'fas fa-warehouse' },
+        { id: 'shopAll1', de: 'Alle Shop-Upgrades Lvl 1', en: 'All Shop Upgrades Lvl 1', descDE: 'Alle Shop-Upgrades auf Level 1 bringen.', descEN: 'Get all shop upgrades to Level 1.', check: () => shopData.every(item => data.upgrades[item.id] >= 1), icon: 'fas fa-chart-line' },
+        { id: 'shopAll5', de: 'Alle Shop-Upgrades Lvl 5', en: 'All Shop Upgrades Lvl 5', descDE: 'Alle Shop-Upgrades auf Level 5 bringen.', descEN: 'Get all shop upgrades to Level 5.', check: () => shopData.every(item => data.upgrades[item.id] >= 5), icon: 'fas fa-chart-bar' },
+        { id: 'shopAll10', de: 'Shop-Meister', en: 'Shop Master', descDE: 'Alle Shop-Upgrades auf Level 10 bringen.', descEN: 'Get all shop upgrades to Level 10.', check: () => shopData.every(item => data.upgrades[item.id] >= 10), icon: 'fas fa-infinity' },
+        { id: 'firstShopUpgrade', de: 'Erstes Shop-Upgrade', en: 'First Shop Upgrade', descDE: 'Kaufe dein erstes Shop-Upgrade.', descEN: 'Buy your first shop upgrade.', check: () => Object.values(data.upgrades).some(lvl => lvl > 0), icon: 'fas fa-shopping-basket' },
+        { id: 'autoClicker', de: 'Autoklicker', en: 'Auto Clicker', descDE: 'Kaufe ein Autoklicker-Upgrade.', descEN: 'Buy an auto-clicker upgrade.', check: () => shopData.filter(item => item.type === 'auto').some(item => data.upgrades[item.id] > 0), icon: 'fas fa-robot' },
+        { id: 'autoMaster', de: 'Auto-Meister', en: 'Auto Master', descDE: 'Kaufe insgesamt 50 Auto-Upgrades.', descEN: 'Buy 50 total auto upgrades.', check: () => shopData.filter(item => item.type === 'auto').reduce((a, b) => a + data.upgrades[b.id], 0) >= 50, icon: 'fas fa-industry' },
+        { id: 'clickMaster', de: 'Klick-Meister', en: 'Click Master', descDE: 'Kaufe insgesamt 50 Klick-Upgrades.', descEN: 'Buy 50 total click upgrades.', check: () => shopData.filter(item => item.type === 'click').reduce((a, b) => a + data.upgrades[b.id], 0) >= 50, icon: 'fas fa-gamepad' },
+
+        // Skill Tree Achievements
+        { id: 'skill1', de: 'Erster Skill', en: 'First Skill', descDE: 'Schalte deinen ersten Skill frei.', descEN: 'Unlock your first Skill.', check: () => data.learnedSkills.length >= 1, icon: 'fas fa-user-graduate' },
+        { id: 'skill5', de: 'Fünf Skills', en: 'Five Skills', descDE: 'Schalte 5 Skills frei.', descEN: 'Unlock 5 Skills.', check: () => data.learnedSkills.length >= 5, icon: 'fas fa-graduation-cap' },
+        { id: 'skill10', de: 'Zehn Skills', en: 'Ten Skills', descDE: 'Schalte 10 Skills frei.', descEN: 'Unlock 10 Skills.', check: () => data.learnedSkills.length >= 10, icon: 'fas fa-scroll' },
+        { id: 'skillTreeLvl1', de: 'Skill-Baum Level 1', en: 'Skill Tree Level 1', descDE: 'Alle Level 1 Skills freischalten.', descEN: 'Unlock all Level 1 Skills.', check: () => skills.filter(s => s.id.startsWith('s1-')).every(s => data.learnedSkills.includes(s.id)), icon: 'fas fa-tree' },
+        { id: 'skillTreeLvl2', de: 'Skill-Baum Level 2', en: 'Skill Tree Level 2', descDE: 'Alle Level 2 Skills freischalten.', descEN: 'Unlock all Level 2 Skills.', check: () => skills.filter(s => s.id.startsWith('s2-')).every(s => data.learnedSkills.includes(s.id)), icon: 'fas fa-sitemap' },
+        { id: 'skillTreeLvl3', de: 'Skill-Baum Level 3', en: 'Skill Tree Level 3', descDE: 'Alle Level 3 Skills freischalten.', descEN: 'Unlock all Level 3 Skills.', check: () => skills.filter(s => s.id.startsWith('s3-')).every(s => data.learnedSkills.includes(s.id)), icon: 'fas fa-network-wired' },
+        { id: 'maxSkillTree', de: 'Skill-Meister', en: 'Skill Master', descDE: 'Schalte alle Skills frei.', descEN: 'Unlock all skills.', check: () => skills.every(s => data.learnedSkills.includes(s.id)), icon: 'fas fa-trophy' },
+
+        // Design Achievements
+        { id: 'designBg1', de: 'Erstes Hintergrund-Design', en: 'First Background Design', descDE: 'Schalte ein anderes Hintergrund-Design frei.', descEN: 'Unlock a different background design.', check: () => data.unlockedBackgroundDesigns.length > 1, icon: 'fas fa-palette' },
+        { id: 'designBtn1', de: 'Erstes Button-Design', en: 'First Button Design', descDE: 'Schalte ein anderes Button-Design frei.', descEN: 'Unlock a different button design.', check: () => data.unlockedButtonDesigns.length > 1, icon: 'fas fa-paint-brush' },
+        { id: 'buttonMania', de: 'Button-Manie', en: 'Button Mania', descDE: 'Schalte 5 verschiedene Button-Designs frei.', descEN: 'Unlock 5 different button designs.', check: () => data.unlockedButtonDesigns.length >= 5, icon: 'fas fa-brush' },
+        { id: 'rainbowSpectrum', de: 'Regenbogen-Spektrum', en: 'Rainbow Spectrum', descDE: 'Schalte 5 verschiedene Hintergrund-Designs frei.', descEN: 'Unlock 5 different background designs.', check: () => data.unlockedBackgroundDesigns.length >= 5, icon: 'fas fa-fill-drip' },
+        { id: 'allBackgrounds', de: 'Alle Hintergründe', en: 'All Backgrounds', descDE: 'Schalte alle Hintergrund-Designs frei.', descEN: 'Unlock all background designs.', check: () => backgroundDesigns.every(d => data.unlockedBackgroundDesigns.includes(d.id)), icon: 'fas fa-mountain' },
+        { id: 'allButtons', de: 'Alle Buttons', en: 'All Buttons', descDE: 'Schalte alle Button-Designs frei.', descEN: 'Unlock all button designs.', check: () => buttonDesigns.every(d => data.unlockedButtonDesigns.includes(d.id)), icon: 'fas fa-circle' },
+
+        // Time Played Achievements
+        { id: 'play1min', de: '1 Minute gespielt', en: '1 Minute Played', descDE: 'Spiele 1 Minute.', descEN: 'Play for 1 minute.', check: () => data.timePlayed >= 60, icon: 'fas fa-hourglass-start' },
+        { id: 'play10min', de: '10 Minuten gespielt', en: '10 Minutes Played', descDE: 'Spiele 10 Minuten.', descEN: 'Play for 10 minutes.', check: () => data.timePlayed >= 600, icon: 'fas fa-hourglass-half' },
+        { id: 'play1hour', de: '1 Stunde gespielt', en: '1 Hour Played', descDE: 'Spiele 1 Stunde.', descEN: 'Play for 1 hour.', check: () => data.timePlayed >= 3600, icon: 'fas fa-hourglass-end' },
+        { id: 'play24hour', de: 'Langzeitspieler', en: 'Long-Term Player', descDE: 'Spiele 24 Stunden.', descEN: 'Play for 24 hours.', check: () => data.timePlayed >= 86400, icon: 'fas fa-clock' },
+
+        // Total Earned/Spent Achievements
+        { id: 'totalEuro10k', de: 'Insgesamt 10.000€', en: 'Total 10,000€', descDE: 'Verdiene insgesamt 10.000 Euro (kumulativ).', descEN: 'Earn 10,000 total Euros (cumulative).', check: () => data.totalEuroEarned >= 10000, icon: 'fas fa-piggy-bank' },
+        { id: 'totalEuro100k', de: 'Insgesamt 100.000€', en: 'Total 100,000€', descDE: 'Verdiene insgesamt 100.000 Euro (kumulativ).', descEN: 'Earn 100,000 total Euros (cumulative).', check: () => data.totalEuroEarned >= 100000, icon: 'fas fa-vault' },
+        { id: 'totalEuro1m', de: 'Insgesamt 1.000.000€', en: 'Total 1,000,000€', descDE: 'Verdiene insgesamt 1.000.000 Euro (kumulativ).', descEN: 'Earn 1,000,000 total Euros (cumulative).', check: () => data.totalEuroEarned >= 1000000, icon: 'fas fa-money-check-alt' },
+        { id: 'totalEuro100m', de: 'Ultimativer Tycoon', en: 'Ultimate Tycoon', descDE: 'Verdiene insgesamt 100.000.000 Euro (kumulativ).', descEN: 'Earn 100,000,000 total Euros (cumulative).', check: () => data.totalEuroEarned >= 100000000, icon: 'fas fa-empire' },
+        { id: 'bigSpender', de: 'Großinvestor', en: 'Big Spender', descDE: 'Gib insgesamt 10.000€ aus.', descEN: 'Spend 10,000€ total.', check: () => data.totalEuroSpent >= 10000, icon: 'fas fa-receipt' },
+        { id: 'investor', de: 'Kapitalist', en: 'Capitalist', descDE: 'Gib insgesamt 100.000€ aus.', descEN: 'Spend 100,000€ total.', check: () => data.totalEuroSpent >= 100000, icon: 'fas fa-chart-pie' },
+        { id: 'spenderKing', de: 'Ausgabenkönig', en: 'Spending King', descDE: 'Gib insgesamt 1.000.000€ aus.', descEN: 'Spend 1,000,000€ total.', check: () => data.totalEuroSpent >= 1000000, icon: 'fas fa-piggy-bank' },
+
+        // Special Achievements
+        { id: 'languageChange', de: 'Sprachgenie', en: 'Language Genius', descDE: 'Ändere die Sprache des Spiels.', descEN: 'Change the game language.', check: () => false, onUnlock: (id) => { data.achievements[id] = true; updateAchievements(); } }, // Special case, checked on language change
+        { id: 'adminCommand', de: 'Admin-Zugriff', en: 'Admin Access', descDE: 'Benutze einen Admin-Befehl.', descEN: 'Use an Admin Command.', check: () => false, onUnlock: (id) => { data.achievements[id] = true; updateAchievements(); } }, // Special case
+        { id: 'grandCollector', de: 'Großsammler', en: 'Grand Collector', descDE: 'Schalte 25 Achievements frei.', descEN: 'Unlock 25 achievements.', check: () => Object.values(data.achievements).filter(b => b).length >= 25, icon: 'fas fa-star-half-alt' },
+        { id: 'completionist', de: 'Komplettist', en: 'Completionist', descDE: 'Schalte alle Achievements frei.', descEN: 'Unlock all achievements.', check: () => achievements.every(ach => data.achievements[ach.id]), icon: 'fas fa-check-double' },
+        { id: 'speedRun1min', de: 'Speedrun (1 Min)', en: 'Speedrun (1 Min)', descDE: 'Erreiche 100€ in unter 1 Minute.', descEN: 'Reach 100€ in under 1 minute.', check: () => data.euro >= 100 && data.timePlayed <= 60, icon: 'fas fa-tachometer-alt' },
+        { id: 'speedRun5min', de: 'Speedrun (5 Min)', en: 'Speedrun (5 Min)', descDE: 'Erreiche 1.000€ in unter 5 Minuten.', descEN: 'Reach 1,000€ in under 5 minutes.', check: () => data.euro >= 1000 && data.timePlayed <= 300, icon: 'fas fa-stopwatch' },
+        { id: 'clickFrenzy', de: 'Klick-Rausch', en: 'Click Frenzy', descDE: 'Klicke 10 Mal in einer Sekunde.', descEN: 'Click 10 times in one second.', check: () => false, description: 'Dies wird im Klick-Handler geprüft', icon: 'fas fa-hand-sparkles' } // Special case: requires click tracking per second
+    ];
+
+    // Initialisiert alle Achievements auf false, wenn sie nicht existieren
+    achievements.forEach(ach => {
+        if (data.achievements[ach.id] === undefined) {
+            data.achievements[ach.id] = false;
+        }
+    });
+
+    // Variablen für Klick-Frenzy Achievement
+    let clickCountLastSecond = 0;
+    let lastClickTime = Date.now();
+    let autoSaveInterval;
+    let autoIncomeInterval;
+    let timePlayedInterval;
+
+    /**
+     * Zeigt eine temporäre Benachrichtigung am unteren linken Bildschirmrand an.
+     * @param {string} title - Der Titel der Benachrichtigung.
+     * @param {string} message - Die Nachricht der Benachrichtigung.
+     * @param {string} iconClass - Eine FontAwesome-Klasse für das Icon.
+     * @param {number} duration - Die Anzeigedauer in Millisekunden.
+     */
+    function showNotification(title, message, iconClass = 'fas fa-info-circle', duration = 3000) {
+        const container = document.getElementById('notificationContainer');
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.innerHTML = `
+            <span class="notification-icon ${iconClass}"></span>
+            <div class="notification-content">
+                <h5>${title}</h5>
+                <p>${message}</p>
+            </div>
+        `;
+        container.appendChild(notification);
+
+        // Zeige die Benachrichtigung an
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 50); // Kleine Verzögerung für CSS-Transition
+
+        // Entferne die Benachrichtigung nach der Dauer
+        setTimeout(() => {
+            notification.classList.remove('show');
+            notification.addEventListener('transitionend', () => {
+                notification.remove();
+            });
+        }, duration);
+    }
+
+    /**
+     * Speichert den aktuellen Spielstand im Local Storage.
+     */
+    function save() {
+        localStorage.setItem('ecUltra', JSON.stringify(data));
+    }
+
+    /**
+     * Lädt den Spielstand aus dem Local Storage.
+     * Stellt sicher, dass neue Felder im Savegame initialisiert werden.
+     */
+    function load() {
+        const saveData = JSON.parse(localStorage.getItem('ecUltra'));
+        if (saveData) {
+            // Mergt geladene Daten mit Standarddaten, um neue Felder zu behandeln
+            Object.assign(data, saveData);
+
+            // Stellt sicher, dass neue Upgrade-IDs initialisiert werden, falls nicht in alten Saves vorhanden
+            shopData.forEach(item => {
+                if (data.upgrades[item.id] === undefined) {
+                    data.upgrades[item.id] = 0;
+                }
+            });
+
+            // Stellt sicher, dass neue Achievement-IDs initialisiert werden
+            achievements.forEach(ach => {
+                if (data.achievements[ach.id] === undefined) {
+                    data.achievements[ach.id] = false;
+                }
+            });
+
+            // Stellt sicher, dass Arrays für freigeschaltete Designs existieren
+            if (!data.unlockedBackgroundDesigns) data.unlockedBackgroundDesigns = [0];
+            if (!data.unlockedButtonDesigns) data.unlockedButtonDesigns = [0];
+            if (data.shopDiscount === undefined) data.shopDiscount = 1; // Standardwert, falls nicht vorhanden
+            if (data.skillPointBoost === undefined) data.skillPointBoost = 0; // Standardwert
+            if (data.totalEuroSpent === undefined) data.totalEuroSpent = 0; // Standardwert
+            if (data.totalClicks === undefined) data.totalClicks = 0; // Standardwert
+            if (data.totalEuroEarned === undefined) data.totalEuroEarned = 0; // Standardwert
+            if (data.prestigeCount === undefined) data.prestigeCount = 0; // Standardwert
+            if (data.timePlayed === undefined) data.timePlayed = 0; // Standardwert
+            if (data.gameStarted === undefined) data.gameStarted = false; // Standardwert
+        }
+    }
+
+    /**
+     * Berechnet alle abgeleiteten Statistiken (perClick, autoIncome, shopDiscount, etc.)
+     * basierend auf dem aktuellen Zustand der Upgrades, Skills und Prestige neu.
+     * Dies ist entscheidend nach dem Laden oder Prestige.
+     */
+    function recalculateStats() {
+        // Basiswerte zurücksetzen
+        data.perClick = 1;
+        data.autoIncome = 0;
+        data.shopDiscount = 1;
+        data.skillPointBoost = 0;
+        data.prestigeBonus = 1 + data.prestigeLevel * 0.1;
+
+        // Shop-Upgrade-Effekte anwenden (additiv)
+        shopData.forEach(item => {
+            let lvl = data.upgrades[item.id] || 0; // Sicherstellen, dass lvl definiert ist
+            if (lvl > 0) {
+                if (item.type === 'click') data.perClick += item.effect * lvl;
+                if (item.type === 'auto') data.autoIncome += item.effect * lvl;
+            }
+        });
+
+        // Skill-Effekte anwenden (in definierter Reihenfolge)
+        // Zuerst additive Boni
+        skills.forEach(skill => {
+            if (data.learnedSkills.includes(skill.id)) {
+                if (skill.id === 's1-1') data.perClick += 5;
+                else if (skill.id === 's2-1') data.perClick += 20;
+                else if (skill.id === 's3-1') data.perClick += 100;
+
+                else if (skill.id === 's1-2') data.autoIncome += 5;
+                else if (skill.id === 's2-2') data.autoIncome += 20;
+                else if (skill.id === 's3-2') data.autoIncome += 100;
+
+                else if (skill.id === 's1-4') data.prestigeBonus += 0.01;
+                else if (skill.id === 's2-3') data.prestigeBonus += 0.05;
+                else if (skill.id === 's3-3') data.prestigeBonus += 0.1;
+
+                else if (skill.id === 's1-5') data.skillPointBoost += 0.01;
+                else if (skill.id === 's2-5') data.skillPointBoost += 0.05;
+                else if (skill.id === 's3-5') data.skillPointBoost += 0.1;
+            }
+        });
+
+        // Dann multiplikative Boni auf Shop-Werte und additive Skill-Boni
+        skills.forEach(skill => {
+            if (data.learnedSkills.includes(skill.id)) {
+                if (skill.id === 's1-3') data.shopDiscount *= 0.95;
+                else if (skill.id === 's2-4') data.shopDiscount *= 0.90;
+                else if (skill.id === 's3-4') data.shopDiscount *= 0.85;
+
+                else if (skill.id === 's2-6') { data.perClick *= 1.1; data.autoIncome *= 1.1; }
+                else if (skill.id === 's3-6') { data.perClick *= 1.2; data.autoIncome *= 1.2; }
+            }
+        });
+
+        // Zum Schluss Synergie-Effekte, da sie von den finalen perClick/autoIncome Werten abhängen
+        skills.forEach(skill => {
+            if (data.learnedSkills.includes(skill.id)) {
+                if (skill.id === 's3-7') data.perClick += data.autoIncome * 0.5;
+                else if (skill.id === 's3-8') data.autoIncome += data.perClick * 0.5;
+            }
+        });
+    }
+
+    /**
+     * Setzt das Spiel komplett zurück (ähnlich einem Neustart).
+     */
+    function resetGame() {
+        if (confirm(get("Möchtest du das Spiel wirklich komplett zurücksetzen? Alle Fortschritte gehen verloren!","Are you sure you want to completely reset the game? All progress will be lost!"))) {
+            localStorage.removeItem('ecUltra');
+            data = {
+                euro: 0,
+                perClick: 1,
+                autoIncome: 0,
+                prestigeLevel: 0,
+                prestigeBonus: 1,
+                skillPoints: 0,
+                shopDiscount: 1,
+                upgrades: {},
+                learnedSkills: [],
+                backgroundDesign: 0,
+                buttonDesign: 0,
+                language: 'de',
+                achievements: {},
+                totalClicks: 0,
+                totalEuroEarned: 0,
+                totalEuroSpent: 0,
+                prestigeCount: 0,
+                timePlayed: 0,
+                unlockedBackgroundDesigns: [0],
+                unlockedButtonDesigns: [0],
+                skillPointBoost: 0,
+                gameStarted: false
+            };
+            // Initialisiert Upgrade-Level und Achievements für ein neues Spiel
+            shopData.forEach(item => data.upgrades[item.id] = 0);
+            achievements.forEach(ach => data.achievements[ach.id] = false);
+
+            showNotification(get("Spiel zurückgesetzt!", "Game Reset!"), get("Dein Fortschritt wurde gelöscht.", "Your progress has been erased."), 'fas fa-redo');
+            updateAll();
+            closeNav(); // Menü nach dem Reset schließen
+            showStartScreen(); // Zurück zum Startbildschirm
+        }
+    }
+
+    /**
+     * Aktualisiert die Anzeige der Euros und Skillpunkte.
+     */
+    function updateDisplay() {
+        document.getElementById('euroDisplay').textContent = data.euro.toFixed(2) + ' €';
+        document.getElementById('skillPointsDisplay').textContent = data.skillPoints;
+    }
+
+    /**
+     * Aktualisiert den Shop-Bereich und die Verfügbarkeit der Upgrades.
+     */
+    function updateShop() {
+        const shop = document.getElementById('shopItems');
+        shop.innerHTML = ''; // Leert den Shop-Bereich vor dem Neuzeichnen
+        shopData.forEach(item => {
+            let lvl = data.upgrades[item.id] || 0;
+            let price = Math.floor(item.base * Math.pow(1.5, lvl) * data.shopDiscount);
+            const btn = document.createElement('button');
+            btn.className = 'shopBtn';
+            btn.disabled = data.euro < price;
+            btn.textContent = `${get(item.de, item.en)} (Lvl ${lvl})\n${price}€\n${get(item.descDE, item.descEN)}`;
+            btn.onclick = () => {
+                if (data.euro >= price) {
+                    data.euro -= price;
+                    data.totalEuroSpent += price; // Verfolgt ausgegebene Euros
+                    data.upgrades[item.id]++;
+                    recalculateStats(); // Recalculate stats after purchase
+                    updateAll();
+                }
+            };
+            shop.appendChild(btn);
+        });
+    }
+
+    /**
+     * Aktualisiert den Skill-Baum und die Verfügbarkeit der Skills.
+     */
+    function updateSkills() {
+        const skillTreeContainer = document.getElementById('skillTreeContainer');
+        skillTreeContainer.innerHTML = '';
+
+        skills.forEach(skill => {
+            const skillNode = document.createElement('div');
+            skillNode.className = 'skillTreeNode';
+
+            const isLearned = data.learnedSkills.includes(skill.id);
+            const canLearn = !isLearned && data.skillPoints >= skill.cost &&
+                             skill.requires.every(reqId => data.learnedSkills.includes(reqId));
+            const isLockedByPrerequisites = !isLearned && !skill.requires.every(reqId => data.learnedSkills.includes(reqId));
+
+            if (isLearned) {
+                skillNode.classList.add('unlocked');
+            } else if (isLockedByPrerequisites) {
+                skillNode.classList.add('locked');
+            } else {
+                skillNode.classList.remove('locked', 'unlocked');
+            }
+
+            const requiredSkillsText = skill.requires.map(reqId => get(skills.find(s=>s.id===reqId).de, skills.find(s=>s.id===reqId).en)).join(', ');
+
+            skillNode.innerHTML = `
+                <h4>${get(skill.de, skill.en)}</h4>
+                <p>${get(skill.descDE, skill.descEN)}</p>
+                <p>${get('Kosten:','Cost:')} ${skill.cost} SP</p>
+                ${isLockedByPrerequisites ? `<p class="skillNodeRequirement">${get('Benötigt: ','Requires: ')}${requiredSkillsText}</p>` : ''}
+                <button ${canLearn ? '' : 'disabled'} class="skillBtn">
+                    ${isLearned ? get('Gelernt', 'Learned') : get('Lernen', 'Learn')}
+                </button>
+            `;
+
+            const btn = skillNode.querySelector('button');
+            btn.onclick = () => {
+                if (canLearn) {
+                    data.skillPoints -= skill.cost;
+                    data.learnedSkills.push(skill.id);
+                    recalculateStats(); // Effekte werden durch recalculateStats angewendet
+                    showNotification(get("Skill gelernt!", "Skill Learned!"), get(`Du hast '${get(skill.de, skill.en)}' gelernt.`, `You learned '${get(skill.de, skill.en)}'.`), 'fas fa-brain');
+                    updateAll();
+                }
+            };
+            skillTreeContainer.appendChild(skillNode);
+        });
+    }
+
+    /**
+     * Aktualisiert den Design-Shop und wendet das ausgewählte Design an.
+     */
+    function updateDesign() {
+        // --- Hintergrund-Designs aktualisieren ---
+        const backgroundDesignDiv = document.getElementById('backgroundDesignItems');
+        backgroundDesignDiv.innerHTML = ''; // Leert den Bereich
+
+        backgroundDesigns.forEach(d => {
+            const btn = document.createElement('button');
+            btn.className = 'designOption designOptionBtn';
+            // Remove previous special classes from the button before adding new ones
+            btn.classList.remove('glitch-effect', 'hacker-effect', 'universe-effect');
+            if (d.className) {
+                btn.classList.add(d.className); // Fügt spezielle Klassen für Effekte hinzu
+            }
+
+            const isUnlocked = data.unlockedBackgroundDesigns.includes(d.id);
+            const canAfford = data.euro >= d.cost;
+
+            let buttonText = get(d.de, d.en);
+            if (!isUnlocked) {
+                buttonText += `\n${d.cost}€`;
+            } else if (data.backgroundDesign === d.id) {
+                buttonText += `\n${get('(Aktiv)','(Active)')}`;
+            }
+
+            btn.textContent = buttonText;
+            btn.style.backgroundColor = d.color;
+            // Passt die Textfarbe für dunkle Hintergründe oder Spezialeffekte an
+            if (d.id === 10) { // Glitch
+                btn.style.color = 'black'; // Glitch hat wechselnde Farben, Text sollte sichtbar bleiben
+            } else if (d.id === 11) { // Hacker
+                btn.style.color = '#0f0';
+            } else if (d.id === 12) { // Universum
+                btn.style.color = 'white';
+            } else if (d.color === '#333333' || d.color === '#228B22' || d.color === '#a52a2a' || d.color === '#0a0a0a' || d.color === '#000') {
+                btn.style.color = 'white';
+            } else {
+                btn.style.color = 'black';
+            }
+
+
+            if (data.backgroundDesign === d.id) {
+                btn.classList.add('selected');
+            } else {
+                btn.classList.remove('selected');
+            }
+
+            btn.disabled = !isUnlocked && !canAfford;
+
+            btn.onclick = () => {
+                if (!isUnlocked && canAfford) {
+                    data.euro -= d.cost;
+                    data.totalEuroSpent += d.cost; // Verfolgt ausgegebene Euros
+                    data.unlockedBackgroundDesigns.push(d.id);
+                    data.backgroundDesign = d.id; // Direkt anwenden nach dem Kauf
+                    showNotification(get("Hintergrund gekauft!", "Background Purchased!"), get(`Du hast '${get(d.de, d.en)}' freigeschaltet.`, `You unlocked '${get(d.de, d.en)}'.`), 'fas fa-palette');
+                } else if (isUnlocked) {
+                    data.backgroundDesign = d.id;
+                    showNotification(get("Hintergrund angewendet!", "Background Applied!"), get(`Du benutzt jetzt '${get(d.de, d.en)}'.`, `You are now using '${get(d.de, d.en)}'.`), 'fas fa-fill-drip');
+                }
+                updateAll(); // Alle Elemente neu rendern
+            };
+            backgroundDesignDiv.appendChild(btn);
+        });
+
+        // Aktuelles Hintergrund-Design auf den Body anwenden
+        const currentBackgroundDesign = backgroundDesigns.find(d => d.id === data.backgroundDesign);
+        if (currentBackgroundDesign) {
+            document.body.style.backgroundColor = currentBackgroundDesign.color;
+            // Entferne alte spezielle Klassen und füge neue hinzu
+            document.body.classList.remove('glitch-effect', 'hacker-effect', 'universe-effect');
+            if (currentBackgroundDesign.className) {
+                document.body.classList.add(currentBackgroundDesign.className);
+            }
+            // Stelle sicher, dass die Textfarbe des Hauptinhalts zum Hintergrund passt
+            if (currentBackgroundDesign.color === '#333333' || currentBackgroundDesign.color === '#0a0a0a' || currentBackgroundDesign.color === '#000') {
+                document.body.style.color = 'white';
+            } else {
+                document.body.style.color = '#333';
+            }
+        }
+
+
+        // --- Button-Designs aktualisieren ---
+        const buttonDesignDiv = document.getElementById('buttonDesignItems');
+        buttonDesignDiv.innerHTML = ''; // Leert den Bereich
+
+        buttonDesigns.forEach(d => {
+            const btn = document.createElement('button');
+            btn.className = 'designOption designOptionBtn';
+
+            const isUnlocked = data.unlockedButtonDesigns.includes(d.id);
+            const canAfford = data.euro >= d.cost;
+
+            let buttonText = get(d.de, d.en);
+            if (!isUnlocked) {
+                buttonText += `\n${d.cost}€`;
+            } else if (data.buttonDesign === d.id) {
+                buttonText += `\n${get('(Aktiv)','(Active)')}`;
+            }
+
+            btn.textContent = buttonText;
+            btn.style.backgroundColor = d.bgColor;
+            btn.style.color = d.textColor;
+
+            if (data.buttonDesign === d.id) {
+                btn.classList.add('selected');
+            } else {
+                btn.classList.remove('selected');
+            }
+
+            btn.disabled = !isUnlocked && !canAfford;
+
+            btn.onclick = () => {
+                if (!isUnlocked && canAfford) {
+                    data.euro -= d.cost;
+                    data.totalEuroSpent += d.cost; // Verfolgt ausgegebene Euros
+                    data.unlockedButtonDesigns.push(d.id);
+                    data.buttonDesign = d.id; // Direkt anwenden nach dem Kauf
+                    showNotification(get("Button gekauft!", "Button Purchased!"), get(`Du hast '${get(d.de, d.en)}' freigeschaltet.`, `You unlocked '${get(d.de, d.en)}'.`), 'fas fa-paint-brush');
+                } else if (isUnlocked) {
+                    data.buttonDesign = d.id;
+                    showNotification(get("Button angewendet!", "Button Applied!"), get(`Du benutzt jetzt '${get(d.de, d.en)}'.`, `You are now using '${get(d.de, d.en)}'.`), 'fas fa-brush');
+                }
+                updateAll(); // Alle Elemente neu rendern
+            };
+            buttonDesignDiv.appendChild(btn);
+        });
+
+        // Aktuelles Button-Design auf alle relevanten Buttons anwenden
+        const currentButtonDesign = buttonDesigns.find(d => d.id === data.buttonDesign);
+        if (currentButtonDesign) {
+            document.getElementById('clickBtn').style.backgroundColor = currentButtonDesign.bgColor;
+            document.getElementById('clickBtn').style.color = currentButtonDesign.textColor;
+
+            // Updates für alle anderen Buttons (Shop, Skill, Settings)
+            document.querySelectorAll('button:not(#clickBtn):not(.designOptionBtn):not(.skillBtn):not(.shopBtn)').forEach(b => {
+                b.style.backgroundColor = currentButtonDesign.bgColor;
+                b.style.color = currentButtonDesign.textColor;
+            });
+
+            // Update für die Menü-Links (A-Tags in der Sidemenu)
+            document.querySelectorAll('#sideMenu a').forEach(a => {
+                // Nur die Hintergrundfarbe setzen, wenn der A-Tag nicht der closebtn ist und keine explizite Hover-Farbe gesetzt ist
+                // Hier wird es etwas komplex, da die Hover-Farbe im CSS definiert ist.
+                // Wir setzen nur die Standardfarbe.
+                if (!a.classList.contains('closebtn')) {
+                    // a.style.backgroundColor = currentButtonDesign.bgColor; // Dies würde Hover überschreiben
+                    // Stattdessen können wir eine Klasse hinzufügen, wenn wir unterschiedliche Button-Stile für diese brauchen
+                }
+            });
+            // Update für Shop- und Skill-Buttons (sie haben eigene Klassen, aber die Farben sollten sich anpassen)
+            document.querySelectorAll('.shopBtn, .skillBtn').forEach(b => {
+                if (!b.disabled) { // Nur aktive Buttons anpassen
+                    b.style.backgroundColor = currentButtonDesign.bgColor;
+                    b.style.color = currentButtonDesign.textColor;
+                }
+            });
+
+        }
+    }
+
+
+    /**
+     * Überprüft und aktualisiert den Status der Achievements.
+     */
+    function updateAchievements() {
+        const achievementList = document.getElementById('achievementList');
+        // Liste nur leeren, wenn wir sie neu aufbauen müssen (z.B. nach Reset)
+        // Ansonsten einfach den Status der bestehenden Elemente aktualisieren für Performance
+        if (achievementList.children.length === 0 || initialLoad) {
+             achievementList.innerHTML = ''; // Leert den Bereich beim initialen Laden oder Reset
+        }
+
+        let achievementsUnlockedThisTick = 0;
+        achievements.forEach(ach => {
+            const achElement = document.getElementById(`ach-${ach.id}`);
+            const isCurrentlyUnlocked = data.achievements[ach.id];
+
+            if (!isCurrentlyUnlocked && ach.check && ach.check()) {
+                data.achievements[ach.id] = true;
+                if (ach.onUnlock) ach.onUnlock(ach.id); // Spezielle Logik bei Freischaltung
+                showNotification(get("Achievement freigeschaltet!", "Achievement Unlocked!"), get(ach.de, ach.en), ach.icon || 'fas fa-star');
+                achievementsUnlockedThisTick++; // Zählt freigeschaltete Achievements
+            }
+
+            // Wenn das Element noch nicht existiert, erstelle es
+            if (!achElement) {
+                const achDiv = document.createElement('div');
+                achDiv.className = 'achievement';
+                achDiv.id = `ach-${ach.id}`; // Füge ID hinzu für schnellere Updates
+
+                const iconSpan = document.createElement('span');
+                iconSpan.className = `achievement-icon ${ach.icon || 'fas fa-star'}`;
+                achDiv.appendChild(iconSpan);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'achievement-content';
+                const title = document.createElement('h4');
+                title.textContent = get(ach.de, ach.en);
+                const desc = document.createElement('p');
+                desc.textContent = get(ach.descDE, ach.descEN);
+                contentDiv.appendChild(title);
+                contentDiv.appendChild(desc);
+                achDiv.appendChild(contentDiv);
+                achievementList.appendChild(achDiv);
+            }
+
+            // Aktualisiere den Status des Elements, ob neu erstellt oder schon vorhanden
+            const currentAchElement = document.getElementById(`ach-${ach.id}`);
+            if (data.achievements[ach.id]) {
+                currentAchElement.classList.add('unlocked');
+            } else {
+                currentAchElement.classList.remove('unlocked');
+            }
+        });
+
+        // Achievements, die selbst andere Achievements als Bedingung haben, müssen ggf. erneut geprüft werden
+        // Dies ist besonders wichtig für 'grandCollector' und 'completionist'
+        if (achievementsUnlockedThisTick > 0) {
+            const grandCollectorAch = achievements.find(a => a.id === 'grandCollector');
+            if (grandCollectorAch && grandCollectorAch.check && !data.achievements.grandCollector && grandCollectorAch.check()) {
+                 data.achievements.grandCollector = true;
+                 showNotification(get("Achievement freigeschaltet!", "Achievement Unlocked!"), get(grandCollectorAch.de, grandCollectorAch.en), grandCollectorAch.icon);
+            }
+            const completionistAch = achievements.find(a => a.id === 'completionist');
+            if (completionistAch && completionistAch.check && !data.achievements.completionist && completionistAch.check()) {
+                 data.achievements.completionist = true;
+                 showNotification(get("Achievement freigeschaltet!", "Achievement Unlocked!"), get(completionistAch.de, completionistAch.en), completionistAch.icon);
+            }
+        }
+        save();
+    }
+
+
+    /**
+     * Aktualisiert alle Spielanzeigen und speichert den Spielstand.
+     */
+    function updateAll() {
+        updateDisplay();
+        updateShop();
+        updateSkills();
+        updateDesign();
+        updateAchievements();
+        save();
+    }
+
+    /**
+     * Führt eine Prestige-Aktion durch.
+     */
+    function prestige() {
+        const minEuroForPrestige = 1000; // Mindest-Euros für 1 Skillpunkt
+        if (data.euro < minEuroForPrestige) {
+            showNotification(get("Nicht genug Euro!", "Not enough Euros!"), get(`Verdiene mindestens ${minEuroForPrestige.toLocaleString()} Euro für 1 Skillpunkt.`, `Earn at least ${minEuroForPrestige.toLocaleString()} Euros for 1 Skill Point.`), 'fas fa-times-circle', 4000);
+            return;
+        }
+
+        if (confirm(get("Prestige durchführen? Du verlierst deinen aktuellen Euro-Fortschritt, Shop-Upgrades und erlernte Skills, aber erhältst Skillpunkte und einen Bonus für zukünftiges Einkommen.","Prestige now? You will lose your current Euro progress, shop upgrades, and learned skills, but gain skill points and a bonus for future income."))) {
+            let gain = Math.floor((data.euro / 1000) * (1 + data.skillPointBoost));
+            if (gain < 1) gain = 1; // Sicherstellen, dass mindestens 1 Skillpunkt gewonnen wird, wenn Prestige verfügbar
+
+            data.skillPoints += gain;
+            data.prestigeLevel++;
+            data.prestigeCount++; // Zählt Prestiges
+
+            // Setzt Spiel auf einen neuen Prestige-Zyklus zurück
+            data.euro = 0;
+            data.perClick = 1;
+            data.autoIncome = 0;
+            data.shopDiscount = 1;
+            data.learnedSkills = [];
+            shopData.forEach(item => data.upgrades[item.id] = 0); // Setzt Upgrade-Level zurück
+
+            recalculateStats(); // Berechnet alle Effekte basierend auf dem neuen Prestige-Level neu
+
+            showNotification(get("Prestige abgeschlossen!", "Prestige Complete!"), get(`Skillpunkte erhalten: ${gain}. Aktueller Prestige-Bonus: ${(data.prestigeBonus * 100).toFixed(0)}%.`, `Skillpoints gained: ${gain}. Current Prestige Bonus: ${(data.prestigeBonus * 100).toFixed(0)}%.`), 'fas fa-star', 5000);
+            updateAll();
+        }
+    }
+
+    /**
+     * Öffnet das angegebene Panel und schließt alle anderen.
+     * @param {string} panelId - Die ID des zu öffnenden Panels.
+     */
+    function openPanel(panelId) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(panelId).classList.add('active');
+    }
+
+    /**
+     * Wechselt die Sprache des Spiels (Deutsch/Englisch).
+     */
+    function switchLanguage() {
+        data.language = (data.language === 'de') ? 'en' : 'de';
+        // Überprüft und schaltet das Sprach-Achievement frei
+        if (!data.achievements.languageChange) {
+            const ach = achievements.find(a => a.id === 'languageChange');
+            if (ach && ach.onUnlock) ach.onUnlock(ach.id);
+        }
+        showNotification(get("Sprache geändert!", "Language Changed!"), get("Die Sprache wurde erfolgreich gewechselt.", "Language has been successfully switched."), 'fas fa-language');
+        updateAll();
+    }
+
+    /**
+     * Helferfunktion zum Abrufen von Text basierend auf der aktuellen Sprache.
+     * @param {string} de - Deutscher Text.
+     * @param {string} en - Englischer Text.
+     * @returns {string} Der Text in der aktuellen Sprache.
+     */
+    function get(de, en) {
+        return data.language === 'de' ? de : en;
+    }
+
+    // --- Menüfunktionen ---
+    function openNav() {
+        document.getElementById("sideMenu").style.width = "250px";
+        document.getElementById("gameContainer").style.marginLeft = "250px";
+    }
+
+    function closeNav() {
+        document.getElementById("sideMenu").style.width = "0";
+        document.getElementById("gameContainer").style.marginLeft = "0";
+    }
+
+    /**
+     * Erstellt und animiert kleine Geldschein-Partikel vom Klick-Button.
+     */
+    function createMoneyParticles() {
+        const clickBtn = document.getElementById('clickBtn');
+        const rect = clickBtn.getBoundingClientRect(); // Position des Buttons
+        const gameContainer = document.getElementById('gameContainer');
+
+        for (let i = 0; i < 5; i++) { // Erstelle 5 Partikel
+            const particle = document.createElement('div');
+            particle.classList.add('money-particle');
+            particle.textContent = '€'; // Oder ein Emoji: '💸', '💰'
+            particle.style.left = `${rect.left + rect.width / 2}px`;
+            particle.style.top = `${rect.top + rect.height / 2}px`;
+            
+            // Zufällige Flugrichtung und Rotation
+            const translateX = (Math.random() - 0.5) * 200; // -100px to +100px
+            const translateY = -(50 + Math.random() * 150); // -50px to -200px (always upwards)
+            const rotate = (Math.random() - 0.5) * 720; // -360deg to +360deg
+
+            particle.style.setProperty('--x', `${translateX}px`);
+            particle.style.setProperty('--y', `${translateY}px`);
+            particle.style.setProperty('--rot', `${rotate}deg`);
+
+            gameContainer.appendChild(particle);
+
+            // Entferne Partikel nach der Animation
+            particle.addEventListener('animationend', () => {
+                particle.remove();
+            });
+        }
+    }
+
+
+    // Event Listener für den Klick-Button
+    document.getElementById('clickBtn').onclick = () => {
+        data.euro += data.perClick * data.prestigeBonus;
+        data.totalClicks++;
+        data.totalEuroEarned += data.perClick * data.prestigeBonus;
+
+        createMoneyParticles(); // Animation auslösen
+
+        // Klick-Frenzy Achievement-Logik
+        const currentTime = Date.now();
+        if (currentTime - lastClickTime < 1000) { // Innerhalb von 1 Sekunde
+            clickCountLastSecond++;
+        } else {
+            clickCountLastSecond = 1; // Neue Sekunde, Zähler zurücksetzen
+        }
+        lastClickTime = currentTime;
+
+        if (clickCountLastSecond >= 10 && !data.achievements.clickFrenzy) {
+            data.achievements.clickFrenzy = true; // Achievement freischalten
+            showNotification(get("Achievement freigeschaltet!", "Achievement Unlocked!"), get("Klick-Rausch!", "Click Frenzy!"), 'fas fa-hand-sparkles');
+        }
+
+        updateAll();
+    };
+
+    /**
+     * Führt Admin-Befehle aus.
+     */
+    function runCommand() {
+        let cmd = document.getElementById('commandInput').value.trim();
+        // Befehle sind case-insensitive
+        cmd = cmd.toLowerCase();
+        let commandExecuted = false;
+
+        if (cmd === 'cheatmoney') {
+            data.euro += 1000000000;
+            data.totalEuroEarned += 1000000000;
+            showNotification(get("Admin-Befehl:", "Admin Command:"), get("1.000.000.000€ hinzugefügt!", "1,000,000,000€ added!"), 'fas fa-terminal');
+            commandExecuted = true;
+        } else if (cmd === 'maxprestige') {
+            data.prestigeLevel = 50;
+            data.prestigeCount += 10;
+            data.skillPoints += 500;
+            recalculateStats();
+            showNotification(get("Admin-Befehl:", "Admin Command:"), get("Prestige auf Max, 500 SP hinzugefügt!", "Prestige maxed, 500 SP added!"), 'fas fa-terminal');
+            commandExecuted = true;
+        } else if (cmd === 'unlockallskills') {
+            skills.forEach(s => {
+                if (!data.learnedSkills.includes(s.id)) {
+                    data.learnedSkills.push(s.id);
+                }
+            });
+            recalculateStats();
+            showNotification(get("Admin-Befehl:", "Admin Command:"), get("Alle Skills freigeschaltet!", "All skills unlocked!"), 'fas fa-terminal');
+            commandExecuted = true;
+        } else if (cmd === 'unlockallachievements') {
+            achievements.forEach(ach => data.achievements[ach.id] = true);
+            showNotification(get("Admin-Befehl:", "Admin Command:"), get("Alle Achievements freigeschaltet!", "All achievements unlocked!"), 'fas fa-terminal');
+            commandExecuted = true;
+        } else if (cmd === 'resetachievements') {
+            achievements.forEach(ach => data.achievements[ach.id] = false);
+            showNotification(get("Admin-Befehl:", "Admin Command:"), get("Alle Achievements zurückgesetzt!", "All achievements reset!"), 'fas fa-terminal');
+            commandExecuted = true;
+        } else if (cmd === 'maxallupgrades') {
+            shopData.forEach(item => {
+                data.upgrades[item.id] = 10; // Max auf Level 10
+            });
+            recalculateStats();
+            showNotification(get("Admin-Befehl:", "Admin Command:"), get("Alle Shop-Upgrades auf Level 10!", "All shop upgrades to Level 10!"), 'fas fa-terminal');
+            commandExecuted = true;
+        } else if (cmd === 'unlockalldesigns') {
+             backgroundDesigns.forEach(d => { if (!data.unlockedBackgroundDesigns.includes(d.id)) data.unlockedBackgroundDesigns.push(d.id); });
+             buttonDesigns.forEach(d => { if (!data.unlockedButtonDesigns.includes(d.id)) data.unlockedButtonDesigns.push(d.id); });
+             showNotification(get("Admin-Befehl:", "Admin Command:"), get("Alle Designs freigeschaltet!", "All designs unlocked!"), 'fas fa-terminal');
+             commandExecuted = true;
+        } else {
+            showNotification(get("Admin-Befehl:", "Admin Command:"), get("Unbekannter Befehl!", "Unknown command!"), 'fas fa-exclamation-triangle');
+        }
+
+        // Achievement für Admin-Befehl freischalten
+        if (commandExecuted && !data.achievements.adminCommand) {
+            const ach = achievements.find(a => a.id === 'adminCommand');
+            if (ach && ach.onUnlock) ach.onUnlock(ach.id);
+        }
+        document.getElementById('commandInput').value = ''; // Eingabe leeren
+        updateAll();
+    }
+
+    /**
+     * Startet das Spiel und blendet den Startbildschirm aus.
+     */
+    function startGame() {
+        data.gameStarted = true;
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('gameTitle').style.display = 'block';
+        document.getElementById('euroDisplay').style.display = 'block';
+        document.getElementById('clickBtn').style.display = 'block';
+        document.getElementById('menuIcon').style.display = 'block';
+        openPanel('shopPanel'); // Standard-Panel öffnen
+        startTimers(); // Startet die Spiel-Timer
+        updateAll(); // Aktualisiert die UI nach dem Start
+    }
+
+    /**
+     * Blendet den Startbildschirm ein.
+     */
+    function showStartScreen() {
+        data.gameStarted = false;
+        document.getElementById('startScreen').style.display = 'flex';
+        document.getElementById('gameTitle').style.display = 'none';
+        document.getElementById('euroDisplay').style.display = 'none';
+        document.getElementById('clickBtn').style.display = 'none';
+        document.getElementById('menuIcon').style.display = 'none';
+        // Alle Panels schließen, um nur den Startscreen anzuzeigen
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        stopTimers(); // Stoppt die Spiel-Timer
+        save();
+    }
+
+    /**
+     * Startet die Intervalle für Auto-Einkommen, Spielzeit und Autosave.
+     */
+    function startTimers() {
+        if (autoIncomeInterval) clearInterval(autoIncomeInterval);
+        if (timePlayedInterval) clearInterval(timePlayedInterval);
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+
+        autoIncomeInterval = setInterval(() => {
+            if (!data.gameStarted) return; // Nur wenn Spiel gestartet
+            data.euro += data.autoIncome * data.prestigeBonus;
+            data.totalEuroEarned += data.autoIncome * data.prestigeBonus;
+            updateDisplay(); // Nur das Display aktualisieren, nicht alle Panels
+        }, 1000);
+
+        timePlayedInterval = setInterval(() => {
+            if (!data.gameStarted) return; // Nur wenn Spiel gestartet
+            data.timePlayed++;
+            // Achievements checken, die auf Zeit basieren
+            updateAchievements();
+        }, 1000); // Jede Sekunde für Spielzeit-Achievements
+
+        autoSaveInterval = setInterval(() => {
+            if (!data.gameStarted) return; // Nur wenn Spiel gestartet
+            save();
+            // showNotification(get("Gespeichert!", "Saved!"), get("Dein Fortschritt wurde automatisch gespeichert.", "Your progress has been automatisch gespeichert."), 'fas fa-save', 2000);
+        }, 30000); // Autosave alle 30 Sekunden
+    }
+
+    /**
+     * Stoppt alle aktiven Spiel-Intervalle.
+     */
+    function stopTimers() {
+        clearInterval(autoIncomeInterval);
+        clearInterval(timePlayedInterval);
+        clearInterval(autoSaveInterval);
+    }
+
+    // Event Listener für den Start-Button
+    document.getElementById('startGameBtn').addEventListener('click', startGame);
+
+    // Initialisiere die UI beim Laden der Seite
+    load();
+    recalculateStats(); // Wichtig nach dem Laden, um alle Werte korrekt zu setzen
+    updateDesign(); // Design muss vor allen anderen Elementen aktualisiert werden, da es globale Stile setzt
+    updateAll(); // Initialer Render aller UI-Elemente
+    if (data.gameStarted) {
+        startGame(); // Wenn das Spiel bereits gestartet war, direkt in den Spielmodus wechseln
+    } else {
+        showStartScreen(); // Andernfalls den Startbildschirm anzeigen
+    }
+
+    // Platzhalter für Google Link Button
+    document.getElementById('linkAccountBtn').addEventListener('click', () => {
+        showNotification(get("Funktion in Entwicklung", "Feature Under Development"), get("Die Verknüpfung mit Google-Konten wird bald verfügbar sein!", "Linking with Google accounts will be available soon!"), 'fas fa-tools', 5000);
+    });
+
+</script>
+</body>
+</html>
